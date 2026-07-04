@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intranet Comedor UNI — Prototipo TO-BE</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap');
+
+:root{
+  --bg:#12151a;
+  --panel:#1c2127;
+  --panel-alt:#242b32;
+  --panel-raised:#2a323b;
+  --border:#39424c;
+  --text:#e9edf1;
+  --text-dim:#9aa6b2;
+  --amber:#f2a93b;
+  --green:#4fae66;
+  --red:#e05a5a;
+  --blue:#4f9fe0;
+  --amber-dim:rgba(242,169,59,0.14);
+  --green-dim:rgba(79,174,102,0.14);
+  --red-dim:rgba(224,90,90,0.14);
+  --blue-dim:rgba(79,159,224,0.14);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  min-height:100vh;
+}
+.app{max-width:1180px;margin:0 auto;padding:18px 18px 0;}
+
+/* ---------- TOPBAR ---------- */
+.topbar{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  padding-bottom:16px;border-bottom:1px solid var(--border);
+  gap:16px;flex-wrap:wrap;
+}
+.brand{display:flex;flex-direction:column;gap:2px;}
+.brand .eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;
+  color:var(--amber);text-transform:uppercase;
+}
+.brand h1{
+  font-family:'Oswald',sans-serif;font-weight:700;font-size:26px;letter-spacing:.01em;
+  margin:2px 0 0;text-transform:uppercase;
+}
+.brand .sub{color:var(--text-dim);font-size:12.5px;margin-top:2px;}
+.status-strip{display:flex;gap:10px;flex-wrap:wrap;}
+.status-chip{
+  display:flex;align-items:center;gap:7px;
+  background:var(--panel);border:1px solid var(--border);border-radius:5px;
+  padding:6px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;
+  color:var(--text-dim);
+}
+.led{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);flex-shrink:0;}
+.led.warn{background:var(--amber);box-shadow:0 0 6px var(--amber);}
+.led.crit{background:var(--red);box-shadow:0 0 6px var(--red);}
+
+/* ---------- TABS ---------- */
+.tabs{display:flex;gap:6px;margin:16px 0;flex-wrap:wrap;}
+.tab-btn{
+  font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;letter-spacing:.03em;
+  text-transform:uppercase;color:var(--text-dim);background:var(--panel);
+  border:1px solid var(--border);border-radius:6px 6px 0 0;padding:11px 18px;
+  cursor:pointer;position:relative;transition:.15s;
+}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--bg);background:var(--amber);border-color:var(--amber);}
+.tab-btn .dot{
+  position:absolute;top:6px;right:7px;width:6px;height:6px;border-radius:50%;
+  background:var(--red);display:none;box-shadow:0 0 5px var(--red);
+}
+.tab-btn .dot.show{display:block;}
+
+/* ---------- PANELS ---------- */
+.panel{
+  background:var(--panel);border:1px solid var(--border);border-radius:0 8px 8px 8px;
+  padding:24px;display:none;min-height:420px;
+}
+.panel.active{display:block;}
+.panel-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.panel-head h2{font-family:'Oswald',sans-serif;text-transform:uppercase;font-size:19px;margin:0;letter-spacing:.02em;}
+.panel-head .role{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);
+  border:1px solid var(--border);padding:5px 10px;border-radius:5px;
+}
+.grid2{display:grid;grid-template-columns:1.1fr 1fr;gap:20px;}
+@media(max-width:820px){.grid2{grid-template-columns:1fr;}}
+
+.card{background:var(--panel-alt);border:1px solid var(--border);border-radius:7px;padding:16px;}
+.card h3{
+  font-family:'Oswald',sans-serif;font-size:13px;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--text-dim);margin:0 0 12px;
+}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:5px;}
+select,input[type=number],input[type=text]{
+  width:100%;background:var(--panel-raised);border:1px solid var(--border);
+  color:var(--text);padding:9px 10px;border-radius:5px;font-family:'Inter',sans-serif;
+  font-size:13.5px;
+}
+select:focus,input:focus{outline:2px solid var(--blue);outline-offset:1px;}
+
+.btn{
+  font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;
+  letter-spacing:.03em;font-size:13.5px;border:none;border-radius:6px;
+  padding:13px 18px;cursor:pointer;transition:.15s;width:100%;
+}
+.btn:focus-visible{outline:3px solid var(--blue);outline-offset:2px;}
+.btn-primary{background:var(--amber);color:#1a1305;}
+.btn-primary:hover{filter:brightness(1.08);}
+.btn-secondary{background:var(--panel-raised);color:var(--text);border:1px solid var(--border);}
+.btn-secondary:hover{border-color:var(--text-dim);}
+.btn-danger{background:var(--red);color:#2a0d0d;}
+.btn-danger:hover{filter:brightness(1.08);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+
+.result-box{
+  margin-top:14px;border-radius:7px;padding:14px 16px;border:1px solid var(--border);
+  font-size:13.5px;line-height:1.5;display:none;
+}
+.result-box.show{display:block;}
+.result-box.ok{background:var(--green-dim);border-color:var(--green);}
+.result-box.warn{background:var(--amber-dim);border-color:var(--amber);}
+.result-box.bad{background:var(--red-dim);border-color:var(--red);}
+.result-box .tag{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;
+  letter-spacing:.08em;display:block;margin-bottom:5px;
+}
+.result-box.ok .tag{color:var(--green);}
+.result-box.warn .tag{color:var(--amber);}
+.result-box.bad .tag{color:var(--red);}
+
+.kpi-row{display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.kpi{
+  flex:1;min-width:120px;background:var(--panel-raised);border:1px solid var(--border);
+  border-radius:7px;padding:12px 14px;
+}
+.kpi .num{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:700;}
+.kpi .lbl{font-size:11px;color:var(--text-dim);margin-top:2px;text-transform:uppercase;letter-spacing:.04em;}
+.bar-outer{width:100%;height:9px;background:var(--panel-raised);border-radius:5px;overflow:hidden;margin-top:6px;border:1px solid var(--border);}
+.bar-inner{height:100%;background:var(--blue);transition:width .35s;}
+.bar-inner.warn{background:var(--amber);}
+.bar-inner.crit{background:var(--red);}
+
+.chip{
+  display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;
+  font-size:11px;padding:4px 9px;border-radius:20px;border:1px solid var(--border);
+  color:var(--text-dim);
+}
+
+.cmmn-box{
+  border:1.5px dashed var(--amber);border-radius:7px;padding:16px;margin-top:16px;
+  background:var(--amber-dim);
+}
+.cmmn-box h4{
+  font-family:'Oswald',sans-serif;font-size:13px;text-transform:uppercase;color:var(--amber);
+  margin:0 0 4px;letter-spacing:.03em;
+}
+.cmmn-box p{font-size:12.5px;color:var(--text-dim);margin:0 0 12px;}
+.checklist label{
+  display:flex;align-items:center;gap:9px;font-size:13px;padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;
+}
+.checklist input{width:auto;accent-color:var(--amber);}
+.locked-note{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--red);
+  margin-top:10px;padding:8px 10px;background:var(--red-dim);border-radius:5px;
+  border:1px solid var(--red);
+}
+
+/* ---------- LOG PANEL ---------- */
+.logpanel{
+  margin-top:20px;background:#0e1115;border:1px solid var(--border);border-radius:8px;
+  padding:14px 16px;
+}
+.logpanel h3{
+  font-family:'Oswald',sans-serif;text-transform:uppercase;font-size:12px;
+  letter-spacing:.06em;color:var(--text-dim);margin:0 0 10px;display:flex;align-items:center;gap:8px;
+}
+.logpanel h3 .pulse{width:7px;height:7px;border-radius:50%;background:var(--blue);animation:pulse 1.6s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(79,159,224,.6);}70%{box-shadow:0 0 0 7px rgba(79,159,224,0);}100%{box-shadow:0 0 0 0 rgba(79,159,224,0);}}
+.log-list{max-height:150px;overflow-y:auto;display:flex;flex-direction:column-reverse;gap:2px;}
+.log-item{
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--text-dim);
+  padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;gap:10px;
+}
+.log-item .t{color:#5c6773;flex-shrink:0;}
+.log-item.ok .lane{color:var(--green);}
+.log-item.warn .lane{color:var(--amber);}
+.log-item.crit .lane{color:var(--red);}
+.log-item .lane{font-weight:700;flex-shrink:0;width:80px;}
+footer.credit{
+  text-align:center;color:var(--text-dim);font-size:11px;padding:18px 0 26px;
+  font-family:'IBM Plex Mono',monospace;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">
+      <span class="eyebrow">Cap. 4 · Prueba de concepto</span>
+      <h1>Intranet Comedor UNI</h1>
+      <span class="sub">Simulación funcional del modelo TO-BE — BPMN + DMN + CMMN</span>
+    </div>
+    <div class="status-strip" id="statusStrip"></div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab-btn active" data-tab="almacen">Almacén</button>
+    <button class="tab-btn" data-tab="nutricion">Nutrición <span class="dot" id="dotNutricion"></span></button>
+    <button class="tab-btn" data-tab="cocina">Cocina <span class="dot" id="dotCocina"></span></button>
+    <button class="tab-btn" data-tab="servicio">Servicio</button>
+    <button class="tab-btn" data-tab="limpieza">Limpieza <span class="dot" id="dotLimpieza"></span></button>
+  </div>
+
+  <!-- ================= ALMACÉN ================= -->
+  <div class="panel active" id="panel-almacen">
+    <div class="panel-head">
+      <h2>Terminal de Almacén</h2>
+      <span class="role">RF-01 · RF-02 · Motor DMN — Tabla 2</span>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Inspeccionar insumos recibidos</h3>
+        <div class="field">
+          <label for="al-estado">Estado de inspección visual</label>
+          <select id="al-estado">
+            <option value="Excelente">Excelente</option>
+            <option value="Regular">Regular</option>
+            <option value="Deficiente">Deficiente</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="al-temp">Temperatura de cárnicos (°C)</label>
+          <input type="number" id="al-temp" value="3" step="0.1">
+        </div>
+        <div class="field">
+          <label for="al-venc">Vigencia — días para fecha de vencimiento</label>
+          <input type="number" id="al-venc" value="35">
+        </div>
+        <button class="btn btn-primary" onclick="evaluarLote()">Aplicar reglas de aceptación (DMN)</button>
+        <div class="result-box" id="al-result"></div>
+      </div>
+      <div class="card">
+        <h3>Stock y trazabilidad</h3>
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="num" id="al-stock">0</div>
+            <div class="lbl">Kg en stock (sistema)</div>
+          </div>
+          <div class="kpi">
+            <div class="num" id="al-lotes">0</div>
+            <div class="lbl">Lotes procesados hoy</div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="al-min">Umbral mínimo de stock (kg) — dispara alerta de quiebre a Nutrición</label>
+          <input type="number" id="al-min" value="40">
+        </div>
+        <p style="font-size:12.5px;color:var(--text-dim);margin-top:8px;line-height:1.5;">
+          Cada lote <strong>Conforme</strong> se pesa automáticamente y se suma al stock.
+          Un lote <strong>Rechazado</strong> se desvía a "Registrar penalidad al proveedor" sin tocar el stock,
+          simulando la Alternativa 2 (motor DMN embebido) frente al registro manual del proceso AS-IS.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= NUTRICIÓN ================= -->
+  <div class="panel" id="panel-nutricion">
+    <div class="panel-head">
+      <h2>Dashboard de Nutrición</h2>
+      <span class="role">Motor DMN — Tabla 3</span>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Revisar insumos ingresados</h3>
+        <div class="field">
+          <label>Conformidad del insumo cárnico (desde Almacén)</label>
+          <div class="chip" id="nu-conformidad">Sin evaluación de Almacén todavía</div>
+        </div>
+        <div class="field">
+          <label for="nu-retraso">Retraso detectado del proveedor (minutos)</label>
+          <input type="number" id="nu-retraso" value="5">
+        </div>
+        <button class="btn btn-primary" onclick="evaluarMenu()">Aplicar reglas de disponibilidad de menú (DMN)</button>
+        <div class="result-box" id="nu-result"></div>
+      </div>
+      <div class="card">
+        <h3>Estado del menú del día</h3>
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="num" id="nu-estado" style="font-size:15px;">Pendiente</div>
+            <div class="lbl">Menú activo en sistema</div>
+          </div>
+        </div>
+        <p style="font-size:12.5px;color:var(--text-dim);line-height:1.5;">
+          Si el insumo crítico está ausente o el retraso supera los 30 minutos, el sistema activa
+          automáticamente el <strong>Menú Alterno</strong> y sincroniza la pantalla de Cocina sin llamadas
+          telefónicas (RF-03), eliminando las actividades 7, 8 y 9 del proceso AS-IS.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= COCINA ================= -->
+  <div class="panel" id="panel-cocina">
+    <div class="panel-head">
+      <h2>Pantalla de Cocina</h2>
+      <span class="role">RF-04 · Red de Alertas Técnicas · CMMN Caso 1</span>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Menú activo y cocción</h3>
+        <div class="chip" id="co-menu">Sin menú recibido</div>
+        <div class="field" style="margin-top:14px;">
+          <label>Horas de uso acumuladas — Horno industrial</label>
+          <div class="bar-outer"><div class="bar-inner" id="co-hornoBar" style="width:0%"></div></div>
+          <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-dim);margin-top:5px;">
+            <span id="co-hornoTxt">0 / 50 h</span>
+            <span>Umbral de mantenimiento preventivo</span>
+          </div>
+        </div>
+        <button class="btn btn-secondary" onclick="cocinarRacion()" id="co-cocinarBtn" style="margin-top:12px;">Cocinar lote (+4 h de horno)</button>
+        <div class="result-box" id="co-result"></div>
+      </div>
+      <div class="card">
+        <h3>Gestión de contingencia operativa (CMMN)</h3>
+        <p style="font-size:12.5px;color:var(--text-dim);line-height:1.5;">
+          Se activa ante una falla catastrófica imprevista de infraestructura (avería de horno, losas rotas)
+          para no romper el flujo digital.
+        </p>
+        <button class="btn btn-danger" onclick="abrirCasoCocina()" id="co-abrirCaso">Reportar falla catastrófica</button>
+
+        <div class="cmmn-box" id="co-cmmnBox" style="display:none;">
+          <h4>Expediente dinámico abierto</h4>
+          <p>El Jefe de Cocina registra el protocolo ad-hoc sin secuencia rígida:</p>
+          <div class="checklist">
+            <label><input type="checkbox" id="co-t1" onchange="chkCocinaCase()"> Reorientar cocción masiva a ollas industriales a gas</label>
+            <label><input type="checkbox" id="co-t2" onchange="chkCocinaCase()"> Reconfigurar personal disponible en estaciones seguras</label>
+            <label><input type="checkbox" id="co-t3" onchange="chkCocinaCase()"> Confirmar uso estricto de EPP</label>
+          </div>
+          <button class="btn btn-primary" style="margin-top:12px;" id="co-cerrarCaso" onclick="cerrarCasoCocina()" disabled>Cerrar caso y reconectar a despacho</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SERVICIO ================= -->
+  <div class="panel" id="panel-servicio">
+    <div class="panel-head">
+      <h2>Counter de Servicio</h2>
+      <span class="role">RF-05 · Red de Alertas de Control de Volumen</span>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Registro de raciones servidas</h3>
+        <div class="field">
+          <label for="se-total">Raciones programadas para hoy</label>
+          <input type="number" id="se-total" value="2350" oninput="renderServicio()">
+        </div>
+        <button class="btn btn-primary" onclick="servirRacion(1)">Marcar ración servida (+1)</button>
+        <button class="btn btn-secondary" style="margin-top:8px;" onclick="servirRacion(50)">Marcar lote servido (+50)</button>
+        <button class="btn btn-secondary" style="margin-top:8px;" onclick="resetServicio()">Reiniciar contador</button>
+      </div>
+      <div class="card">
+        <h3>Avance del despacho</h3>
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="num" id="se-servidas">0</div>
+            <div class="lbl">Raciones servidas</div>
+          </div>
+          <div class="kpi">
+            <div class="num" id="se-pct">0%</div>
+            <div class="lbl">Del total programado</div>
+          </div>
+        </div>
+        <div class="bar-outer"><div class="bar-inner" id="se-bar" style="width:0%"></div></div>
+        <div class="result-box" id="se-result"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= LIMPIEZA ================= -->
+  <div class="panel" id="panel-limpieza">
+    <div class="panel-head">
+      <h2>Terminal de Limpieza</h2>
+      <span class="role">CMMN Caso 2 · Cierre de jornada</span>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Cierre de jornada</h3>
+        <div class="checklist">
+          <label><input type="checkbox" id="li-t1" onchange="renderLimpieza()"> Lavar utensilios</label>
+          <label><input type="checkbox" id="li-t2" onchange="renderLimpieza()"> Limpiar áreas de trabajo y hornos</label>
+        </div>
+        <button class="btn btn-danger" style="margin-top:14px;" onclick="abrirCasoLimpieza()" id="li-abrirCaso">Detectar incidencia de salubridad</button>
+        <button class="btn btn-primary" style="margin-top:10px;" onclick="registrarCierre()" id="li-cierreBtn" disabled>Registrar cierre de jornada</button>
+        <div class="result-box" id="li-result"></div>
+      </div>
+      <div class="card">
+        <h3>Expediente de incidente (CMMN)</h3>
+        <div id="li-cmmnWrap">
+          <p style="font-size:12.5px;color:var(--text-dim);">Sin incidencias activas. El expediente se abre automáticamente
+          si se detecta una anomalía sanitaria grave durante la desinfección técnica.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="logpanel">
+    <h3><span class="pulse"></span>Registro de alertas síncronas — todos los carriles</h3>
+    <div class="log-list" id="logList"></div>
+  </div>
+
+  <footer class="credit">PROTOTIPO NO PRODUCTIVO — datos y estado en memoria de sesión — comedor.uni.local (simulado)</footer>
+</div>
+
+<script>
+/* ---------------- STATE ---------------- */
+const state = {
+  stockKg: 0,
+  lotesHoy: 0,
+  insumoConformidad: null,   // 'Conforme' | 'No Conforme'
+  menuEstado: 'pendiente',   // pendiente | base | ajuste | alterno
+  hornoHoras: 0,
+  hornoRestringido: false,
+  cocinaCaso: null,          // {t1,t2,t3}
+  racionesServidas: 0,
+  alerta85Enviada: false,
+  limpieza: { t1:false, t2:false },
+  limpiezaCaso: null,        // {evidencia, aislar, orden, firma}
+  cierreRegistrado: false
+};
+
+/* ---------------- LOG ---------------- */
+function logEvent(lane, msg, level){
+  const list = document.getElementById('logList');
+  const item = document.createElement('div');
+  item.className = 'log-item ' + (level||'ok');
+  const time = new Date().toLocaleTimeString('es-PE',{hour12:false});
+  item.innerHTML = `<span class="t">${time}</span><span class="lane">${lane}</span><span>${msg}</span>`;
+  list.appendChild(item);
+  list.scrollTop = list.scrollHeight;
+  updateStatusStrip();
+}
+
+function updateStatusStrip(){
+  const strip = document.getElementById('statusStrip');
+  const chips = [
+    {name:'Almacén', level: state.stockKg>0 ? 'ok':'idle'},
+    {name:'Nutrición', level: state.menuEstado==='alterno'?'warn': state.menuEstado==='ajuste'?'warn':'ok'},
+    {name:'Cocina', level: state.cocinaCaso ? 'crit' : state.hornoRestringido ? 'warn':'ok'},
+    {name:'Servicio', level: state.alerta85Enviada && state.racionesServidas < (Number(document.getElementById('se-total').value)||2350) ? 'warn':'ok'},
+    {name:'Limpieza', level: state.limpiezaCaso && !state.limpiezaCaso.firma ? 'crit':'ok'}
+  ];
+  strip.innerHTML = chips.map(c=>{
+    const ledClass = c.level==='crit'?'crit':c.level==='warn'?'warn':'';
+    return `<div class="status-chip"><span class="led ${ledClass}"></span>${c.name}</div>`;
+  }).join('');
+
+  document.getElementById('dotCocina').classList.toggle('show', !!state.cocinaCaso || state.hornoRestringido);
+  document.getElementById('dotLimpieza').classList.toggle('show', !!state.limpiezaCaso && !state.limpiezaCaso.firma);
+  document.getElementById('dotNutricion').classList.toggle('show', state.menuEstado==='alterno' || state.menuEstado==='ajuste');
+}
+
+/* ---------------- TABS ---------------- */
+document.getElementById('tabs').addEventListener('click', e=>{
+  const btn = e.target.closest('.tab-btn');
+  if(!btn) return;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+});
+
+/* ---------------- ALMACÉN — DMN Tabla 2 ---------------- */
+function evaluarLote(){
+  const estado = document.getElementById('al-estado').value;
+  const temp = parseFloat(document.getElementById('al-temp').value);
+  const venc = parseFloat(document.getElementById('al-venc').value);
+  const box = document.getElementById('al-result');
+  box.className = 'result-box show';
+
+  let decision, detail, level, conforme;
+
+  if(estado==='Excelente' && temp<=4 && venc>30){
+    decision = 'Lote conforme — avanzar a pesaje automático';
+    detail = 'Cumple la regla 1 de la Tabla 2: inspección excelente, cadena de frío correcta y vigencia amplia.';
+    level='ok'; conforme=true;
+  } else if(estado==='Regular' && temp<=4 && venc>=15 && venc<=30){
+    decision = 'Lote conforme con observación — avanzar a pesaje automático';
+    detail = 'Cumple la regla 2: inspección regular dentro de rango de temperatura y vigencia media.';
+    level='ok'; conforme=true;
+  } else if(estado==='Deficiente' && temp>4 && venc<=3){
+    decision = 'Lote rechazado — registrar penalidad al proveedor';
+    detail = 'Cumple la regla 3: inspección deficiente, ruptura de cadena de frío y vigencia crítica.';
+    level='bad'; conforme=false;
+  } else {
+    decision = 'Caso complejo — requiere investigación adicional';
+    detail = 'La combinación de variables no calza exactamente con ninguna fila de la Tabla 2; el sistema deriva el caso a revisión manual del jefe de logística en vez de decidir automáticamente.';
+    level='warn'; conforme=null;
+  }
+
+  box.innerHTML = `<span class="tag">Resultado de decisión (DMN)</span><strong>${decision}</strong><br>${detail}`;
+  box.classList.remove('ok','warn','bad'); box.classList.add(level);
+
+  state.lotesHoy++;
+  document.getElementById('al-lotes').textContent = state.lotesHoy;
+
+  if(conforme===true){
+    const kg = Math.round(20 + Math.random()*30);
+    state.stockKg += kg;
+    document.getElementById('al-stock').textContent = state.stockKg;
+    logEvent('ALMACÉN', `Lote conforme (${estado}) pesado automáticamente: +${kg} kg`, 'ok');
+    const min = parseFloat(document.getElementById('al-min').value)||0;
+    if(state.stockKg < min){
+      logEvent('ALMACÉN', `Alerta de quiebre de stock enviada a Nutrición (stock ${state.stockKg} kg < mínimo ${min} kg)`, 'warn');
+    }
+    state.insumoConformidad = 'Conforme';
+  } else if(conforme===false){
+    logEvent('ALMACÉN', `Lote rechazado (${estado}) — penalidad registrada, insumo no ingresa a stock`, 'crit');
+    state.insumoConformidad = 'No Conforme';
+  } else {
+    logEvent('ALMACÉN', 'Caso complejo derivado a investigación adicional del jefe de logística', 'warn');
+    state.insumoConformidad = 'No Conforme';
+  }
+
+  const chip = document.getElementById('nu-conformidad');
+  chip.textContent = state.insumoConformidad==='Conforme' ? 'Conforme (última evaluación Almacén)' : 'No conforme / requiere revisión';
+  updateStatusStrip();
+}
+
+/* ---------------- NUTRICIÓN — DMN Tabla 3 ---------------- */
+function evaluarMenu(){
+  const conformidad = state.insumoConformidad || 'No Conforme';
+  const retraso = parseFloat(document.getElementById('nu-retraso').value);
+  const box = document.getElementById('nu-result');
+  box.className = 'result-box show';
+
+  let decision, detail, level, estadoMenu;
+
+  if(conformidad==='Conforme' && retraso<=15){
+    decision = 'Habilitar Menú Base programado';
+    detail = 'No requiere investigación adicional. El sistema envía el menú base directamente a la pantalla de Cocina.';
+    level='ok'; estadoMenu='base';
+  } else if(conformidad==='Conforme' && retraso>15){
+    decision = 'Emitir alerta a Cocina para ajuste secuencial de hornos';
+    detail = 'El insumo es conforme pero el retraso obliga a reordenar la secuencia de cocción.';
+    level='warn'; estadoMenu='ajuste';
+  } else if(conformidad!=='Conforme' && retraso>30){
+    decision = 'Activar automáticamente Menú Alterno de contingencia';
+    detail = 'Insumo no conforme o ausente y retraso mayor a 30 minutos: el sistema conmuta el menú sin intervención humana.';
+    level='bad'; estadoMenu='alterno';
+  } else {
+    decision = 'Caso complejo — desabastecimiento en evaluación';
+    detail = 'La combinación no coincide con una regla base; se sugiere activar manualmente el menú alterno desde el panel si el insumo no llega a tiempo.';
+    level='warn'; estadoMenu='ajuste';
+  }
+
+  box.innerHTML = `<span class="tag">Resultado de decisión (DMN)</span><strong>${decision}</strong><br>${detail}`;
+  box.classList.remove('ok','warn','bad'); box.classList.add(level);
+
+  state.menuEstado = estadoMenu;
+  const estadoTxt = {base:'Menú Base', ajuste:'Base + ajuste hornos', alterno:'Menú Alterno'}[estadoMenu];
+  document.getElementById('nu-estado').textContent = estadoTxt;
+
+  logEvent('NUTRICIÓN', `${decision} → enviado a pantalla de Cocina`, level==='ok'?'ok':level==='bad'?'crit':'warn');
+
+  const menuChip = document.getElementById('co-menu');
+  menuChip.textContent = 'Menú activo: ' + estadoTxt;
+  updateStatusStrip();
+}
+
+/* ---------------- COCINA ---------------- */
+function cocinarRacion(){
+  if(state.cocinaCaso){ return; }
+  state.hornoHoras += 4;
+  if(state.hornoHoras>=50){ state.hornoRestringido = true; }
+  renderCocina();
+
+  const box = document.getElementById('co-result');
+  box.className = 'result-box show ok';
+  box.innerHTML = `<span class="tag">Cocción registrada</span>Lote cocinado con el menú activo. Horas de horno acumuladas: ${state.hornoHoras} h.`;
+
+  if(state.hornoHoras>=50 && state.hornoHoras<54){
+    logEvent('COCINA', 'Umbral de 50 h de uso alcanzado — alerta preventiva de mantenimiento disparada, uso del horno restringido', 'warn');
+  } else {
+    logEvent('COCINA', `Cocción registrada (+4 h de horno) — total ${state.hornoHoras} h`, 'ok');
+  }
+  updateStatusStrip();
+}
+
+function renderCocina(){
+  const pct = Math.min(100, (state.hornoHoras/50)*100);
+  const bar = document.getElementById('co-hornoBar');
+  bar.style.width = pct+'%';
+  bar.className = 'bar-inner' + (state.hornoHoras>=50?' crit': state.hornoHoras>=40?' warn':'');
+  document.getElementById('co-hornoTxt').textContent = `${state.hornoHoras} / 50 h`;
+  const btn = document.getElementById('co-cocinarBtn');
+  btn.disabled = state.hornoRestringido || !!state.cocinaCaso;
+  btn.textContent = state.hornoRestringido ? 'Horno restringido — requiere mantenimiento' : 'Cocinar lote (+4 h de horno)';
+}
+
+function abrirCasoCocina(){
+  state.cocinaCaso = {t1:false,t2:false,t3:false};
+  document.getElementById('co-cmmnBox').style.display = 'block';
+  document.getElementById('co-abrirCaso').disabled = true;
+  document.getElementById('co-t1').checked=false;
+  document.getElementById('co-t2').checked=false;
+  document.getElementById('co-t3').checked=false;
+  document.getElementById('co-cerrarCaso').disabled = true;
+  renderCocina();
+  logEvent('COCINA', 'CMMN Caso 1 abierto: contingencia operativa por falla catastrófica de infraestructura', 'crit');
+  updateStatusStrip();
+}
+
+function chkCocinaCase(){
+  const c = state.cocinaCaso;
+  c.t1 = document.getElementById('co-t1').checked;
+  c.t2 = document.getElementById('co-t2').checked;
+  c.t3 = document.getElementById('co-t3').checked;
+  document.getElementById('co-cerrarCaso').disabled = !(c.t1 && c.t2 && c.t3);
+}
+
+function cerrarCasoCocina(){
+  state.cocinaCaso = null;
+  document.getElementById('co-cmmnBox').style.display = 'none';
+  document.getElementById('co-abrirCaso').disabled = false;
+  renderCocina();
+  logEvent('COCINA', 'CMMN Caso 1 cerrado — producción estabilizada, flujo reconectado a traslado a despacho', 'ok');
+  updateStatusStrip();
+}
+
+/* ---------------- SERVICIO ---------------- */
+function servirRacion(n){
+  const total = Number(document.getElementById('se-total').value)||2350;
+  state.racionesServidas = Math.min(total, state.racionesServidas + n);
+  const pct = (state.racionesServidas/total)*100;
+
+  renderServicio();
+
+  if(pct>=85 && !state.alerta85Enviada){
+    state.alerta85Enviada = true;
+    logEvent('SERVICIO', `Umbral del 85% alcanzado (${state.racionesServidas}/${total}) — alerta enviada a Cocina para apagado progresivo de marmitas`, 'warn');
+    const box = document.getElementById('se-result');
+    box.className = 'result-box show warn';
+    box.innerHTML = `<span class="tag">Alerta síncrona enviada</span>85% de raciones despachadas: Cocina recibió la orden de apagado progresivo.`;
+  }
+  if(pct>=100){
+    logEvent('SERVICIO', 'Despacho del 100% completado — jornada de servicio finalizada', 'ok');
+  }
+}
+
+function resetServicio(){
+  state.racionesServidas = 0;
+  state.alerta85Enviada = false;
+  document.getElementById('se-result').className='result-box';
+  renderServicio();
+  logEvent('SERVICIO', 'Contador de raciones reiniciado', 'ok');
+}
+
+function renderServicio(){
+  const total = Number(document.getElementById('se-total').value)||2350;
+  const pct = Math.min(100, (state.racionesServidas/total)*100);
+  document.getElementById('se-servidas').textContent = state.racionesServidas;
+  document.getElementById('se-pct').textContent = Math.round(pct)+'%';
+  const bar = document.getElementById('se-bar');
+  bar.style.width = pct+'%';
+  bar.className = 'bar-inner' + (pct>=85?' warn':'');
+  updateStatusStrip();
+}
+
+/* ---------------- LIMPIEZA ---------------- */
+function renderLimpieza(){
+  state.limpieza.t1 = document.getElementById('li-t1').checked;
+  state.limpieza.t2 = document.getElementById('li-t2').checked;
+  evaluarCierre();
+}
+
+function abrirCasoLimpieza(){
+  state.limpiezaCaso = {evidencia:false, aislar:false, orden:false, firma:false};
+  document.getElementById('li-abrirCaso').disabled = true;
+  logEvent('LIMPIEZA', 'CMMN Caso 2 abierto: incidente de salubridad/infraestructura detectado en desinfección técnica', 'crit');
+  renderCmmnLimpieza();
+  evaluarCierre();
+}
+
+function renderCmmnLimpieza(){
+  const wrap = document.getElementById('li-cmmnWrap');
+  if(!state.limpiezaCaso){
+    wrap.innerHTML = `<p style="font-size:12.5px;color:var(--text-dim);">Sin incidencias activas. El expediente se abre automáticamente
+      si se detecta una anomalía sanitaria grave durante la desinfección técnica.</p>`;
+    return;
+  }
+  const c = state.limpiezaCaso;
+  wrap.innerHTML = `
+    <div class="cmmn-box">
+      <h4>Expediente de incidente abierto</h4>
+      <p>El cierre de jornada queda bloqueado hasta completar la mitigación provisional.</p>
+      <div class="checklist">
+        <label><input type="checkbox" id="li-c1" ${c.evidencia?'checked':''}> Registrar evidencia fotográfica</label>
+        <label><input type="checkbox" id="li-c2" ${c.aislar?'checked':''}> Aislar el área afectada</label>
+        <label><input type="checkbox" id="li-c3" ${c.orden?'checked':''}> Generar orden de asistencia prioritaria a mantenimiento central</label>
+      </div>
+      <button class="btn btn-primary" style="margin-top:12px;" id="li-firmar" ${!(c.evidencia&&c.aislar&&c.orden) ? 'disabled':''}>Firmar mitigación provisional y cerrar caso</button>
+      ${!c.firma ? '<div class="locked-note">Cierre de jornada bloqueado hasta contar con firma digital de mitigación provisional.</div>' : ''}
+    </div>`;
+
+  document.getElementById('li-c1').onchange = e=>{c.evidencia=e.target.checked; renderCmmnLimpieza(); evaluarCierre();};
+  document.getElementById('li-c2').onchange = e=>{c.aislar=e.target.checked; renderCmmnLimpieza(); evaluarCierre();};
+  document.getElementById('li-c3').onchange = e=>{c.orden=e.target.checked; renderCmmnLimpieza(); evaluarCierre();};
+  const firmar = document.getElementById('li-firmar');
+  if(firmar) firmar.onclick = ()=>{
+    c.firma = true;
+    logEvent('LIMPIEZA', 'CMMN Caso 2 cerrado — firma digital de mitigación provisional registrada', 'ok');
+    document.getElementById('li-abrirCaso').disabled = false;
+    renderCmmnLimpieza();
+    evaluarCierre();
+    updateStatusStrip();
+  };
+}
+
+function evaluarCierre(){
+  const casoOk = !state.limpiezaCaso || state.limpiezaCaso.firma;
+  const tareasOk = state.limpieza.t1 && state.limpieza.t2;
+  document.getElementById('li-cierreBtn').disabled = !(casoOk && tareasOk) || state.cierreRegistrado;
+  updateStatusStrip();
+}
+
+function registrarCierre(){
+  state.cierreRegistrado = true;
+  const box = document.getElementById('li-result');
+  box.className = 'result-box show ok';
+  box.innerHTML = `<span class="tag">Cierre de jornada</span>Jornada cerrada correctamente en el sistema. Todos los expedientes CMMN están resueltos.`;
+  document.getElementById('li-cierreBtn').disabled = true;
+  logEvent('LIMPIEZA', 'Cierre de jornada registrado en el sistema — fin de operación', 'ok');
+}
+
+/* ---------------- INIT ---------------- */
+renderCocina();
+renderServicio();
+updateStatusStrip();
+logEvent('SISTEMA', 'Intranet Comedor UNI iniciada — todos los carriles en espera', 'ok');
+</script>
+</body>
+</html>
